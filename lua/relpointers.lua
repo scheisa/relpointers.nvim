@@ -1,34 +1,18 @@
 local M = {}
 
-local config = {
-    highlight_type = "match", -- match, cursor_column, number_row
-    amount = 3,               -- amount of pointers
-    distance = 5,             -- distance between pointers
-}
+-- highlight group
+vim.api.nvim_set_hl(0, "RelPointersHl", { underline = true })
+local function render_pointers_match(buf_nr, namespace, line_nr)
+    vim.fn.matchaddpos("RelPointersHl", { line_nr })
 
-M.setup = function(opts)
-
-end
-
-local function render_pointers_virt(buf_nr, namespace, line_nr)
     local line_content = vim.api.nvim_buf_get_lines(buf_nr, line_nr - 1, line_nr, false)
     local pointer_text = line_content[1]
-    if pointer_text == "" then
-        pointer_text = "\t\t\t\t"
-    end
-    local virtual_text = { {
-        pointer_text,
-        -- "IncSearch",
-        "@text.underline",
-    } }
-    vim.api.nvim_buf_set_extmark(buf_nr, namespace, line_nr - 1, 0,
-        { virt_text_pos = "overlay", virt_text = virtual_text, virt_text_win_col = 0 })
-end
 
-vim.api.nvim_set_hl(0, "GroupName", { underline = true })
-local function render_pointers(buf_nr, line_nr)
-    local match_id = vim.fn.matchaddpos("GroupName", { line_nr })
-    print(match_id)
+    if pointer_text == "" then
+        print("pizda")
+        vim.api.nvim_buf_set_extmark(buf_nr, namespace, line_nr - 1, 0,
+            { virt_text_pos = "overlay", virt_text = {{"\t\t\t\t\t", "RelPointersHL"}}, virt_text_win_col = 0 })
+    end
 end
 
 M.start = function(amount, distance)
@@ -39,14 +23,15 @@ M.start = function(amount, distance)
     local line_nr = vim.fn.line(".")
     local namespace = vim.api.nvim_create_namespace("lines")
 
+    -- clearing
+    vim.fn.clearmatches()
     vim.api.nvim_buf_clear_namespace(0, namespace, 0, -1)
 
     -- above cursor line
     local offset_above = line_nr - (distance * amount)
     for i = line_nr - distance, offset_above, -distance do
         if i > 0 then
-            -- render_pointers(buf_nr, namespace, i)
-            render_pointers(buf_nr, i)
+            render_pointers_match(buf_nr, namespace, i)
         end
     end
 
@@ -54,8 +39,7 @@ M.start = function(amount, distance)
     local offset_below = line_nr + (distance * amount)
     for i = line_nr + distance, offset_below, distance do
         if i <= vim.fn.line("$") then
-            -- render_pointers(buf_nr, namespace, i)
-            render_pointers(buf_nr, i)
+            render_pointers_match(buf_nr, namespace, i)
         end
     end
 end
@@ -68,15 +52,17 @@ local id = vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
     pattern = "*",
 
     callback = function()
-        M.start(3, 5)
+        M.start(3, 7)
     end
 })
 
-M.stop = function()
+-- disable plugin
+M.disable = function()
     vim.api.nvim_del_autocmd(id)
     local namespaces = vim.api.nvim_get_namespaces()
     local namespace = namespaces["lines"]
     vim.api.nvim_buf_clear_namespace(0, namespace, 0, -1)
+    vim.fn.clearmatches()
 end
 
 return M
