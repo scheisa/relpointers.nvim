@@ -21,7 +21,7 @@ use { "scheisa/relpointers.nvim" }
 ```
 
 ## Usage 
-Just call `require("relpointers").setup({})` function in your config file.
+Just call `require("relpointers").setup({})` function in your config file.Use `require("relpointers").disable()` to disable the plugin.
 
 ## Configuration
 ```lua
@@ -36,3 +36,12 @@ require("relpointers").setup({
     white_space_rendering = "\t\t\t\t\t", -- how should the pointer look if there is no symbols on the line
 })
 ```
+
+## NOTE
+> - this plugin uses `vim.fn.clearmatches()` so if you are using default autocmd
+all matches would be cleared on every cursor move 
+
+> - idea of this plugin is not mine, I saw a basic implementation of this 
+in ThePrimeagen's discord unfortunally I can't find it now to specify who is the
+original authour. I rewrote it, implemented some of my personal ideas and 
+made it to be a plugin-like instead of lua function.
