@@ -39,6 +39,19 @@ local function render_pointers_match(buf_nr, namespace, line_nr)
     end
 end
 
+local function define_positions(line_nr, buf_nr, namespace, direction)
+    local amount = config.amount
+    local distance = config.distance
+
+    local offset = line_nr + (direction * (amount * distance))
+
+    for i = line_nr + (direction * distance), offset, (direction * distance)  do
+        if (i > 0) then
+            render_pointers_match(buf_nr, namespace, i)
+        end
+    end
+end
+
 M.start = function()
     local amount = config.amount
     local distance = config.distance
@@ -53,21 +66,10 @@ M.start = function()
     vim.fn.clearmatches()
     vim.api.nvim_buf_clear_namespace(0, namespace, 0, -1)
 
-    -- above cursor line
-    local offset_above = line_nr - (distance * amount)
-    for i = line_nr - distance, offset_above, -distance do
-        if (i > 0) then
-            render_pointers_match(buf_nr, namespace, i)
-        end
-    end
-
-    -- below cursor line
-    local offset_below = line_nr + (distance * amount)
-    for i = line_nr + distance, offset_below, distance do
-        if (i <= vim.fn.line("$")) then
-            render_pointers_match(buf_nr, namespace, i)
-        end
-    end
+    -- below cursor
+    define_positions(line_nr, buf_nr, namespace, 1)
+    -- above cursor
+    define_positions(line_nr, buf_nr, namespace, -1)
 end
 
 -- disable plugin
