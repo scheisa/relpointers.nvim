@@ -1,5 +1,10 @@
 # relpointers.nvim
 
+## Demo
+
+https://github.com/scheisa/relpointers.nvim/assets/108890393/2bf74646-a5f3-4282-9fa2-e012d2f99727
+
+
 ## Instalation
 [lazy.nvim](https://github.com/folke/lazy.nvim)
 ```lua
