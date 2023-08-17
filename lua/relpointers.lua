@@ -6,8 +6,14 @@ local config = {
 
     hl_properties = { underline = true },
 
+    pointer_style = "line region",
+
+    virtual_pointer_position = -4,
+    virtual_pointer_text = "@",
+
     enable_autocmd = true,
     autocmd_pattern = "*",
+
     white_space_rendering = "\t\t\t\t\t",
 }
 
@@ -15,7 +21,7 @@ M.setup = function(opts)
     config = vim.tbl_deep_extend("force", config, opts or {})
 
     if (config.enable_autocmd) then
-        -- autogroup
+   -- autogroup
         local group = vim.api.nvim_create_augroup("Relative", { clear = true })
         -- autocmd
         autocmd_id = vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
@@ -39,6 +45,18 @@ local function render_pointers_match(buf_nr, namespace, line_nr)
     end
 end
 
+local function render_pointers_virt(buf_nr, namespace, line_nr)
+    local virtual_text = { {
+        config.virtual_pointer_text,
+        -- "IncSearch",
+        "RelPointersHL",
+    } }
+    if line_nr <= vim.fn.line("$") then
+        vim.api.nvim_buf_set_extmark(buf_nr, namespace, line_nr - 1, 0,
+            { virt_text_pos = "overlay", virt_text = virtual_text, virt_text_win_col = config.virtual_pointer_position})
+    end
+end
+
 local function define_positions(line_nr, buf_nr, namespace, direction)
     local amount = config.amount
     local distance = config.distance
@@ -47,7 +65,11 @@ local function define_positions(line_nr, buf_nr, namespace, direction)
 
     for i = line_nr + (direction * distance), offset, (direction * distance)  do
         if (i > 0) then
-            render_pointers_match(buf_nr, namespace, i)
+            if (config.pointer_style == "line region") then
+                render_pointers_match(buf_nr, namespace, i)
+            elseif (config.pointer_style == "virtual") then
+                render_pointers_virt(buf_nr, namespace, i)
+            end
         end
     end
 end

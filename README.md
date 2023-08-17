@@ -26,16 +26,59 @@ Just call `require("relpointers").setup({})` function in your config file.Use `r
 ## Configuration
 ```lua
 require("relpointers").setup({
-    amount = 2, -- amount of pointers
-    distance = 5, -- distance between pointers
+    amount = 2,
+    distance = 5,
 
-    hl_properties = { underline = true }, 
+    hl_properties = { underline = true },
+
+    pointer_style = "line region",
+
+    white_space_rendering = "\t\t\t\t\t",
+
+    virtual_pointer_position = -4,
+    virtual_pointer_text = "@",
 
     enable_autocmd = true,
     autocmd_pattern = "*",
-    white_space_rendering = "\t\t\t\t\t", -- how should the pointer look if there is no symbols on the line
 })
 ```
+### amount
+Amount of pointers below or under cursor (multiply by 2 to see actuall amount)
+### distance 
+Distance between pointers
+### hl_properties = {}
+Any arguments which work with `vim.api.nvim_set_hl()` would work
+### pointer_style
+Currently there is 2 styles - "line region" and "virtual"
+#### "line region"
+ **currently works only with the whole line**
+
+You can specify region which will be highlighted on the line, (1 for the whole
+line)
+
+Use `white_space_rendering` to specify how lines without any symbols should be
+displayed. Default value is 5 tabs
+#### "virtual"
+Uses `vim.api.nvim_buf_set_extmark()` to work.
+
+Position could be specified, default one is located in signcolumn (-4), use
+`virtual_pointer_position` to change it.
+
+You can change its text by using `virtual_pointer_text`.
+
+You still can use`hl_properties` to change highlights ( I recommend to use
+something like `hl_properties = { link = "Visual" }` or `hl_properties = { link = "IncSearch" }`
+instead of default underline highlight)
+
+### enable_autocmd 
+Enables default autocmd
+### autocmd_pattern
+You could specify a pattern for default autocmd. 
+Example:
+- "*" - will work with any filetypes
+- "*.lua" - will work only with `.lua` extension
+
+
 
 ## NOTE
 > - this plugin uses `vim.fn.clearmatches()` so if you are using default autocmd
