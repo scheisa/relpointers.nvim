@@ -21,7 +21,7 @@ M.setup = function(opts)
     config = vim.tbl_deep_extend("force", config, opts or {})
 
     if (config.enable_autocmd) then
-   -- autogroup
+        -- autogroup
         local group = vim.api.nvim_create_augroup("Relative", { clear = true })
         -- autocmd
         autocmd_id = vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
@@ -40,20 +40,37 @@ local function render_pointers_match(buf_nr, namespace, line_nr)
 
     if (pointer_text == "") then
         vim.api.nvim_buf_set_extmark(buf_nr, namespace, line_nr - 1, 0,
-            { virt_text_pos = "overlay", virt_text = { { config.white_space_rendering, "RelPointersHL" } },
-                virt_text_win_col = 0 })
+            {
+                virt_text_pos = "overlay",
+                virt_text = { { config.white_space_rendering, "RelPointersHL" } },
+                virt_text_win_col = 0
+            })
     end
 end
 
 local function render_pointers_virt(buf_nr, namespace, line_nr)
-    local virtual_text = { {
-        config.virtual_pointer_text,
-        -- "IncSearch",
-        "RelPointersHL",
-    } }
-    if line_nr <= vim.fn.line("$") then
+    local virtual_text = { { config.virtual_pointer_text, "RelPointersHL", } }
+
+    if (line_nr <= vim.fn.line("$")) then
         vim.api.nvim_buf_set_extmark(buf_nr, namespace, line_nr - 1, 0,
-            { virt_text_pos = "overlay", virt_text = virtual_text, virt_text_win_col = config.virtual_pointer_position})
+            { virt_text_pos = "overlay", virt_text = virtual_text, virt_text_win_col = config.virtual_pointer_position })
+    end
+end
+
+local function render_pointers_column(buf_nr, namespace, line_nr)
+    local virtual_text = { { " ", "RelPointersHL", } }
+    local line_content = vim.fn.getline(line_nr)
+    local cursor_position = vim.fn.getcurpos()[3]
+
+    if (line_content ~= "") then
+        vim.fn.matchaddpos("RelPointersHL", { { line_nr, cursor_position, 1 } })
+        if (#line_content < cursor_position) then
+            vim.api.nvim_buf_set_extmark(buf_nr, namespace, line_nr - 1, 0,
+                { virt_text_pos = "overlay", virt_text = virtual_text, virt_text_win_col = cursor_position - 1 })
+        end
+    elseif (line_nr <= vim.fn.line("$")) then
+        vim.api.nvim_buf_set_extmark(buf_nr, namespace, line_nr - 1, 0,
+            { virt_text_pos = "overlay", virt_text = virtual_text, virt_text_win_col = cursor_position - 1 })
     end
 end
 
@@ -63,20 +80,20 @@ local function define_positions(line_nr, buf_nr, namespace, direction)
 
     local offset = line_nr + (direction * (amount * distance))
 
-    for i = line_nr + (direction * distance), offset, (direction * distance)  do
+    for i = line_nr + (direction * distance), offset, (direction * distance) do
         if (i > 0) then
             if (config.pointer_style == "line region") then
                 render_pointers_match(buf_nr, namespace, i)
             elseif (config.pointer_style == "virtual") then
                 render_pointers_virt(buf_nr, namespace, i)
+            elseif (config.pointer_style == "column") then
+                render_pointers_column(buf_nr, namespace, i)
             end
         end
     end
 end
 
 M.start = function()
-    local amount = config.amount
-    local distance = config.distance
     -- highlight group
     vim.api.nvim_set_hl(0, "RelPointersHl", config.hl_properties)
 
